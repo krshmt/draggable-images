@@ -1,0 +1,48 @@
+.project-detail {
+	cursor: auto;
+	display: flex;
+	justify-content: center;
+}
+
+.project-detail__grain{
+	margin-top: 2rem;
+	border-radius: 10px;
+	flex-basis: 90%;
+	color: white;
+}
+
+.project-hero__media{
+	height: 60vh;
+	overflow: hidden;
+}
+
+.project-hero__content{
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.project-hero__content div{
+	flex-basis: 60%;
+}
+
+.project-hero{
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	padding: 2rem 0;
+}
+
+.project-hero__content{
+	flex-grow: 1;
+}
+
+.project-gallery figure:nth-child(2){
+	text-align: end
+}
+
+.project-gallery img{
+	width: 40%;
+	height: 350px;
+	object-fit: cover;
+}
