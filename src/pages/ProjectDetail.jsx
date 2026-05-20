@@ -1,5 +1,6 @@
 import { Navigate, useParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import { useRef } from 'react'
 import {
 	getProjectBySlug,
 	getProjectIndexBySlug,
@@ -40,6 +41,29 @@ const itemVariants = {
 	},
 }
 
+function ParallaxGalleryImage({ image, title, index }) {
+	const itemRef = useRef(null)
+	const { scrollYProgress } = useScroll({
+		target: itemRef,
+		offset: ['start end', 'end start'],
+	})
+	const y = useTransform(scrollYProgress, [0, 1], ['-12%', '12%'])
+
+	return (
+		<motion.figure
+			ref={itemRef}
+			className="project-gallery__item"
+			variants={itemVariants}
+		>
+			<motion.img
+				src={`/${image}`}
+				alt={`${title} ${index + 1}`}
+				style={{ y }}
+			/>
+		</motion.figure>
+	)
+}
+
 function ProjectDetail() {
 	const { slug } = useParams()
 	const project = getProjectBySlug(slug)
@@ -77,13 +101,12 @@ function ProjectDetail() {
 
 				<section className="project-gallery" aria-label={`${project.title} images`}>
 					{galleryImages.map((image, index) => (
-						<motion.figure
-							className="project-gallery__item"
+						<ParallaxGalleryImage
+							image={image}
+							title={project.title}
+							index={index}
 							key={`${image}-${index}`}
-							variants={itemVariants}
-						>
-							<img src={`/${image}`} alt={`${project.title} ${index + 1}`} />
-						</motion.figure>
+						/>
 					))}
 				</section>
 			</div>

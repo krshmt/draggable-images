@@ -35,7 +35,7 @@ function NextProjectSection({ project }) {
 		sectionRef,
 		onComplete: goToNextProject,
 		minVelocity: 0.62,
-		intensity: 0.000145,
+		intensity: 0.00025,
 		decay: 0.68,
 	})
 
@@ -63,7 +63,7 @@ function NextProjectSection({ project }) {
 				<h2 id="next-project-title" className="next-project__title">
 					{project.title}
 				</h2>
-				<p className="next-project__eyebrow">Scroll to discover next project</p>
+				<p className="next-project__eyebrow">Scroll pour le projet suivant</p>
 			</div>
 
 			<div
