@@ -1,5 +1,5 @@
 import './App.css'
-import DraggableImagesCode from './components/draggable-images'
+import DraggableImagesCode from './components/draggable-images-distortion'
 
 function App() {
   return (
