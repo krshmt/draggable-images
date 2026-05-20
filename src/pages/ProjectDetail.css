@@ -1,11 +1,13 @@
 .project-detail {
 	cursor: auto;
 	display: flex;
+	flex-direction: column;
+	align-items: center;
 	justify-content: center;
 }
 
 .project-detail__grain{
-	margin: 1rem 0;
+	margin: 1rem 2rem;
 	padding: 1rem 2rem;
 	border-radius: 10px;
 	flex-basis: 90%;

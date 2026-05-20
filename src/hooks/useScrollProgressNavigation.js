@@ -18,7 +18,7 @@ export function useScrollProgressNavigation({
 	onComplete,
 	threshold = 1,
 	minVelocity = 0.48,
-	intensity = 0.00019,
+	intensity = 0.00145,
 	decay = 0.72,
 	idleDelay = 140,
 } = {}) {
@@ -111,6 +111,5 @@ export function useScrollProgressNavigation({
 	return {
 		progress,
 		isCharging,
-		hasTriggered: triggeredRef.current,
 	}
 }

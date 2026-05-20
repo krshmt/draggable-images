@@ -1,10 +1,11 @@
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
 	getProjectBySlug,
 	getProjectIndexBySlug,
 	projectsWithSlugs,
 } from '../utils/projects.js'
+import NextProjectSection from '../components/next-project-section/NextProjectSection.jsx'
 import './ProjectDetail.css'
 
 const pageVariants = {
@@ -86,6 +87,8 @@ function ProjectDetail() {
 					))}
 				</section>
 			</div>
+
+			<NextProjectSection project={nextProject} />
 		</motion.main>
 	)
 }

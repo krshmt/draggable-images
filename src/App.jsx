@@ -10,6 +10,7 @@ import ProjectDetail from './pages/ProjectDetail.jsx'
 function App() {
   const location = useLocation()
   const lenisRef = useRef(null)
+  const previousPathRef = useRef(location.pathname)
 
   useEffect(() => {
     let frameId
@@ -36,7 +37,29 @@ function App() {
   }, [])
 
   useEffect(() => {
-    lenisRef.current?.scrollTo(0, { immediate: true })
+    if (!('scrollRestoration' in window.history)) return undefined
+
+    const previousRestoration = window.history.scrollRestoration
+    window.history.scrollRestoration = 'manual'
+
+    return () => {
+      window.history.scrollRestoration = previousRestoration
+    }
+  }, [])
+
+  useEffect(() => {
+    if (previousPathRef.current === location.pathname) return undefined
+
+    previousPathRef.current = location.pathname
+
+    const timeoutId = window.setTimeout(() => {
+      lenisRef.current?.scrollTo(0, { immediate: true, force: true })
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    }, 520)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
   }, [location.pathname])
 
   return (
