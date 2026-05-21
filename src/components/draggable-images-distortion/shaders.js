@@ -103,8 +103,8 @@ export const deformationFragmentShader = `
     if (inImageArea && imageAlpha > 0.0) {
       float atlasSize = ceil(sqrt(uTextureCount));
       vec2 atlasPos = vec2(mod(texIndex, atlasSize), floor(texIndex / atlasSize));
-      vec2 atlasUV = (atlasPos + deformedImageUV) / atlasSize;
-      atlasUV.y = 1.0 - atlasUV.y;
+      vec2 imageAtlasUV = vec2(deformedImageUV.x, 1.0 - deformedImageUV.y);
+      vec2 atlasUV = (atlasPos + imageAtlasUV) / atlasSize;
 
       vec3 imageColor = texture2D(uImageAtlas, atlasUV).rgb;
       color = mix(color, imageColor, imageAlpha);

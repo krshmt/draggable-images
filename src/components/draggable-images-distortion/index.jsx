@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js'
-import { projects } from '../../data/data.js'
+import { projectsWithSlugs } from '../../utils/projects.js'
 import {
 	deformationFragmentShader,
 	deformationVertexShader,
@@ -11,7 +12,7 @@ import {
 	settleDragDeformation,
 	updateDragDeformationTarget,
 } from './useDragDeformation.js'
-import '../draggable-images/styles.css'
+import './styles.css'
 
 const config = {
 	cellSize: 0.75,
@@ -32,6 +33,12 @@ const rgbaToArray = (rgba) => {
 		.map((value, index) =>
 			index < 3 ? parseFloat(value.trim()) / 255 : parseFloat(value.trim() || 1)
 		)
+}
+
+const getProjectIndexFromCell = (cellX, cellY) => {
+	const rawIndex = cellX + cellY * 3
+	return ((rawIndex % projectsWithSlugs.length) + projectsWithSlugs.length) %
+		projectsWithSlugs.length
 }
 
 const createTextTexture = (title, year) => {
@@ -108,9 +115,9 @@ const loadTextures = (textTextures) => {
 	let loadedCount = 0
 
 	return new Promise((resolve) => {
-		projects.forEach((project) => {
+		projectsWithSlugs.forEach((project) => {
 			const texture = textureLoader.load(project.image, () => {
-				if (++loadedCount === projects.length) resolve(imageTextures)
+				if (++loadedCount === projectsWithSlugs.length) resolve(imageTextures)
 			})
 
 			Object.assign(texture, {
@@ -128,6 +135,7 @@ const loadTextures = (textTextures) => {
 
 function DraggableImagesDistortion() {
 	const galleryRef = useRef(null)
+	const navigate = useNavigate()
 
 	useEffect(() => {
 		let scene
@@ -216,11 +224,10 @@ function DraggableImagesDistortion() {
 
 					const cellX = Math.floor(worldX / config.cellSize)
 					const cellY = Math.floor(worldY / config.cellSize)
-					const texIndex = Math.floor((cellX + cellY * 3.0) % projects.length)
-					const actualIndex = texIndex < 0 ? projects.length + texIndex : texIndex
+					const actualIndex = getProjectIndexFromCell(cellX, cellY)
 
-					if (projects[actualIndex]?.href) {
-						window.location.href = projects[actualIndex].href
+					if (projectsWithSlugs[actualIndex]?.href) {
+						navigate(projectsWithSlugs[actualIndex].href)
 					}
 				}
 			}
@@ -356,7 +363,7 @@ function DraggableImagesDistortion() {
 				uMousePos: { value: new THREE.Vector2(-1, -1) },
 				uZoom: { value: 1.0 },
 				uCellSize: { value: config.cellSize },
-				uTextureCount: { value: projects.length },
+				uTextureCount: { value: projectsWithSlugs.length },
 				uDelta: { value: new THREE.Vector2(0, 0) },
 				uAmplitude: { value: 0 },
 				uImageAtlas: { value: imageAtlas },
@@ -393,7 +400,7 @@ function DraggableImagesDistortion() {
 				}
 			}
 		}
-	}, [])
+	}, [navigate])
 
 	return (
 		<section id="gallery" ref={galleryRef}>
