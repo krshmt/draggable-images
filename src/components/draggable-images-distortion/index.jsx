@@ -48,7 +48,7 @@ const createTextTexture = (title, year) => {
 	const ctx = canvas.getContext('2d')
 
 	ctx.clearRect(0, 0, 2048, 256)
-	ctx.font = '80px IBM Plex Mono'
+	ctx.font = '80px Poppins, Arial, sans-serif'
 	ctx.fillStyle = config.textColor
 	ctx.textBaseline = 'middle'
 	ctx.imageSmoothingEnabled = false
@@ -157,6 +157,9 @@ function DraggableImagesDistortion() {
 		const textTextures = []
 		const dragDeformation = createDragDeformationState()
 
+		const isHeaderEvent = (event) =>
+			event.target instanceof Element && event.target.closest('.site-header')
+
 		const updateMousePosition = (event) => {
 			const rect = renderer.domElement.getBoundingClientRect()
 			mousePosition.x = event.clientX - rect.left
@@ -197,9 +200,17 @@ function DraggableImagesDistortion() {
 			previousMouse.y = currentY
 		}
 
-		const onPointerDown = (event) => startDrag(event.clientX, event.clientY)
-		const onPointerMove = (event) => handleMove(event.clientX, event.clientY)
+		const onPointerDown = (event) => {
+			if (isHeaderEvent(event)) return
+			startDrag(event.clientX, event.clientY)
+		}
+		const onPointerMove = (event) => {
+			if (isHeaderEvent(event)) return
+			handleMove(event.clientX, event.clientY)
+		}
 		const onPointerUp = (event) => {
+			if (isHeaderEvent(event)) return
+
 			isDragging = false
 			document.body.classList.remove('dragging')
 			targetZoom = 1.0
@@ -234,11 +245,15 @@ function DraggableImagesDistortion() {
 		}
 
 		const onTouchStart = (event) => {
+			if (isHeaderEvent(event)) return
+
 			event.preventDefault()
 			startDrag(event.touches[0].clientX, event.touches[0].clientY)
 		}
 
 		const onTouchMove = (event) => {
+			if (isHeaderEvent(event)) return
+
 			event.preventDefault()
 			handleMove(event.touches[0].clientX, event.touches[0].clientY)
 		}
