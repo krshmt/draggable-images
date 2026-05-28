@@ -1,0 +1,42 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html,
+body {
+	width: 100%;
+	min-height: 100%;
+	font-family: "Poppins", Arial, Helvetica, sans-serif;
+	background: #000;
+	cursor: grab;
+	user-select: none;
+	overflow-x: hidden;
+}
+
+body.dragging {
+	cursor: grabbing;
+}
+
+#gallery {
+	position: relative;
+	width: 100vw;
+	height: 100svh;
+}
+
+.vignette-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	background: radial-gradient(
+		ellipse at center,
+		transparent 50%,
+		rgba(0, 0, 0, 0.1) 70%,
+		rgba(0, 0, 0, 0.75) 90%,
+		rgba(0, 0, 0, 1) 100%
+	);
+}

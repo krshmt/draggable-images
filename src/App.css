@@ -1,0 +1,15 @@
+.route-shell {
+	width: 100%;
+	min-height: 100svh;
+}
+
+.gallery-route {
+	position: fixed;
+	inset: 0;
+	overflow: hidden;
+	background: #000;
+}
+
+.empty-route {
+	background: #000;
+}
