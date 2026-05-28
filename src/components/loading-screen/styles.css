@@ -1,0 +1,109 @@
+.loading-screen {
+	position: fixed;
+	inset: 0;
+	z-index: 5000;
+	display: grid;
+	place-items: center;
+	background: #000000;
+	color: #f4f5ef;
+	overflow: hidden;
+}
+
+.loading-screen__content {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	gap: 2rem;
+	width: min(100%, 24rem);
+	min-height: calc(var(--loader-image-height) + 5.5rem);
+}
+
+.loading-screen__text {
+	display: flex;
+	align-items: baseline;
+	justify-content: center;
+	gap: 10rem;
+	font-family: "Poppins", Arial, Helvetica, sans-serif;
+	font-size: clamp(2.2rem, 8vw, 5.25rem);
+	font-weight: 700;
+	line-height: 0.9;
+	letter-spacing: 0;
+	text-transform: uppercase;
+}
+
+.loading-screen__mask {
+	display: block;
+	overflow: hidden;
+	padding-block: 0.08em;
+}
+
+.loading-screen__word,
+.loading-screen__counter {
+	display: block;
+	font-size: 1.5rem;
+	font-weight: 500;
+	will-change: transform;
+}
+
+.loading-screen__counter {
+	min-width: 2.05em;
+	text-align: left;
+}
+
+.loading-screen__image-stage {
+	position: relative;
+	width: var(--loader-image-width);
+	height: var(--loader-image-height);
+}
+
+.loading-screen__first-image,
+.loading-screen__stacked-image {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	width: var(--loader-image-width);
+	height: var(--loader-image-height);
+	margin: 0 auto;
+	overflow: hidden;
+	background: #171b22;
+	box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24);
+	transform-origin: 50% 100%;
+	will-change: height, transform, opacity;
+}
+
+.loading-screen__first-image {
+	height: 0;
+	transform-origin: 50% 100%;
+}
+
+.loading-screen__stacked-image {
+	transform: scale(0);
+	transform-origin: 50% 50%;
+}
+
+.loading-screen__first-image img,
+.loading-screen__stacked-image img {
+	display: block;
+	width: var(--loader-image-width);
+	height: var(--loader-image-height);
+	object-fit: cover;
+	user-select: none;
+	pointer-events: none;
+}
+
+.loading-screen__first-image img,
+.loading-screen__stacked-image img {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+}
+
+@media (max-width: 700px) {
+	.loading-screen__content {
+		gap: 1.35rem;
+		min-height: calc(var(--loader-image-height) + 4.25rem);
+	}
+}

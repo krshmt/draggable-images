@@ -13,3 +13,12 @@
 .empty-route {
 	background: #000;
 }
+
+.home-entry-transition {
+	position: fixed;
+	inset: 0;
+	z-index: 4500;
+	background: #000;
+	pointer-events: none;
+	will-change: transform;
+}

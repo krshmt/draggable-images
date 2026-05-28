@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import Lenis from 'lenis'
 import 'lenis/dist/lenis.css'
 import { Route, Routes, useLocation } from 'react-router-dom'
@@ -8,11 +8,24 @@ import GalleryPage from './pages/GalleryPage.jsx'
 import ProjectDetail from './pages/ProjectDetail.jsx'
 import AboutPage from './pages/AboutPage.jsx'
 import Header from './components/header/Header.jsx'
+import LoadingScreen from './components/loading-screen/LoadingScreen.jsx'
+
+let hasPlayedHomeLoader = false
 
 function App() {
   const location = useLocation()
   const lenisRef = useRef(null)
   const previousPathRef = useRef(location.pathname)
+  const [isHomeLoading, setIsHomeLoading] = useState(
+    () => location.pathname === '/' && !hasPlayedHomeLoader
+  )
+  const [showHomeEntryTransition, setShowHomeEntryTransition] = useState(false)
+
+  const handleHomeLoaderComplete = useCallback(() => {
+    hasPlayedHomeLoader = true
+    setShowHomeEntryTransition(true)
+    setIsHomeLoading(false)
+  }, [])
 
   useEffect(() => {
     let frameId
@@ -66,14 +79,36 @@ function App() {
 
   return (
     <>
-      <Header />
-      <AnimatePresence mode="wait" initial={false}>
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<GalleryPage />} />
-          <Route path="/a-propos" element={<AboutPage />} />
-          <Route path="/project/:slug" element={<ProjectDetail />} />
-        </Routes>
-      </AnimatePresence>
+      {isHomeLoading ? (
+        <LoadingScreen onComplete={handleHomeLoaderComplete} />
+      ) : (
+        <>
+          <Header />
+          <AnimatePresence mode="wait" initial={showHomeEntryTransition}>
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={<GalleryPage />} />
+              <Route path="/a-propos" element={<AboutPage />} />
+              <Route path="/project/:slug" element={<ProjectDetail />} />
+            </Routes>
+          </AnimatePresence>
+          <AnimatePresence>
+            {showHomeEntryTransition && (
+              <motion.div
+                className="home-entry-transition"
+                initial={{
+                  y: '0%',
+                }}
+                animate={{
+                  y: '-100%',
+                }}
+                exit={{ y: '-100%' }}
+                transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
+                onAnimationComplete={() => setShowHomeEntryTransition(false)}
+              />
+            )}
+          </AnimatePresence>
+        </>
+      )}
     </>
   )
 }
