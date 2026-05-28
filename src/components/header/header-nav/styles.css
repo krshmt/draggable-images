@@ -2,7 +2,7 @@ nav{
     position: absolute;
     top: calc(100% + 0.75rem);
     right: 0;
-    background-color: rgba(217, 224, 227, 0.82);
+    background-color: rgb(255, 255, 255);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     padding: 1rem 2rem 0.5rem 2rem;
@@ -18,9 +18,14 @@ nav{
     transform-origin: right top;
     overflow: hidden;
     will-change: scale, opacity;
+    cursor: default;
 }
 
-nav a{
+.nav-backdrop{
+    cursor: default;
+}
+
+.lien a{
     color: black;
     font-weight: 900;
     font-size: 2rem;
@@ -60,23 +65,40 @@ nav a{
     transform: translateY(100%);
 }
 
-nav a:hover .nav-link-text__primary,
-nav a:focus-visible .nav-link-text__primary{
+.lien a:hover .nav-link-text__primary,
+.lien a:focus-visible .nav-link-text__primary{
     opacity: 0;
     transform: translateY(-100%);
 }
 
-nav a:hover .nav-link-text__clone,
-nav a:focus-visible .nav-link-text__clone{
+.lien a:hover .nav-link-text__clone,
+.lien a:focus-visible .nav-link-text__clone{
     opacity: 1;
     transform: translateY(0);
 }
 
 .mail{
     border-top: thin solid rgba(0, 0, 0, 0.16);
-    margin-top: 1rem;
+    margin-top: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-.mail p{
+.mail a:first-child{
+    color: black;
+    text-decoration: none;
     padding: 15px 1rem 15px 0;
+}
+
+.social-link {
+    color: rgb(255, 255, 255);
+    background-color: rgb(0, 0, 0);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    padding: 0.6rem;
+    border-radius: 50%;
 }

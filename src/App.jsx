@@ -7,7 +7,6 @@ import { Route, Routes, useLocation } from 'react-router-dom'
 import GalleryPage from './pages/GalleryPage.jsx'
 import ProjectDetail from './pages/ProjectDetail.jsx'
 import AboutPage from './pages/AboutPage.jsx'
-import ContactPage from './pages/ContactPage.jsx'
 import Header from './components/header/Header.jsx'
 
 function App() {
@@ -72,7 +71,6 @@ function App() {
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<GalleryPage />} />
           <Route path="/a-propos" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
           <Route path="/project/:slug" element={<ProjectDetail />} />
         </Routes>
       </AnimatePresence>

@@ -200,7 +200,9 @@ function Header() {
 						isOpen={isOpen}
 						onClick={handleMenuClick}
 					/>
-					{shouldRenderNav && <Nav ref={navRef} onNavigate={handleNavigate} />}
+					{shouldRenderNav && (
+						<Nav ref={navRef} onNavigate={handleNavigate} onClose={closeNav} />
+					)}
 				</div>
 			</header>
 		</>
