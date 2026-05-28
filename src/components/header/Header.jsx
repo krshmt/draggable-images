@@ -1,285 +1,184 @@
-import { AnimatePresence, motion } from 'framer-motion'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import './styles.css'
+import "./styles.css"
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { gsap } from "gsap";
+import { CustomEase } from "gsap/CustomEase";
+import Button from "./header-btn/Button";
+import Nav from "./header-nav/Nav";
 
-const MENU_LABEL_RETURN_DELAY = 760
+gsap.registerPlugin(CustomEase);
 
-const menuItems = [
-	{ label: 'Projets', to: '/' },
-	{ label: 'À propos', to: '/a-propos' },
-	{ label: 'Contact', to: '/contact' },
-]
-
-const panelVariants = {
-	closed: {
-		width: '128px',
-		height: '66px',
-		padding: '8px 18px',
-		transition: {
-			duration: 0.58,
-			ease: [0.76, 0, 0.24, 1],
-			delay: 0.18,
-		},
-	},
-	open: {
-		width: '30vw',
-		height: '90vh',
-		padding: '8px 18px 2rem 5rem',
-		transition: {
-			duration: 0.78,
-			ease: [0.76, 0, 0.24, 1],
-			delay: 0.12,
-			when: 'beforeChildren',
-		},
-	},
-}
-
-const contentVariants = {
-	closed: {
-		transition: {
-			staggerChildren: 0.05,
-			staggerDirection: -1,
-		},
-	},
-	open: {
-		transition: {
-			delayChildren: 1,
-			staggerChildren: 0.09,
-		},
-	},
-}
-
-const contentItemVariants = {
-	closed: {
-		opacity: 0,
-		y: 20,
-		transition: { duration: 0.24, ease: 'easeInOut' },
-	},
-	open: {
-		opacity: 1,
-		y: 0,
-		transition: { duration: 0.46, ease: [0.22, 1, 0.36, 1] },
-	},
-}
-
-const emailVariants = {
-	closed: {
-		opacity: 0,
-		y: 20,
-		transition: { duration: 0.24, ease: 'easeInOut' },
-	},
-	open: {
-		opacity: 1,
-		y: 0,
-		transition: { duration: 0.46, ease: [0.22, 1, 0.36, 1], delay: 1.22 },
-	},
-}
-
-const circleVariants = {
-	closed: {
-		scale: 0.1,
-		transition: { duration: 0.34, ease: 'easeInOut' },
-	},
-	open: {
-		scale: 1,
-		transition: { duration: 0.78, ease: [0.76, 0, 0.24, 1], delay: 0.12 },
-	},
-}
-
-const crossVariants = {
-	closed: {
-		opacity: 0,
-		scale: 0.6,
-		transition: { duration: 0.16, ease: 'easeInOut' },
-	},
-	open: {
-		opacity: 1,
-		scale: 1,
-		transition: { duration: 0.24, ease: 'easeInOut', delay: 0.78 },
-	},
-}
+const navOpenEase = CustomEase.create(
+	"navOpenEase",
+	"M0,0 C0.18,0 0.22,1.34 0.62,1.34 0.82,1.34 0.86,1 1,1"
+);
+const navCloseEase = CustomEase.create(
+	"navCloseEase",
+	"M0,0 C0.16,0 0.18,-0.34 0.36,-0.34 0.72,-0.34 0.8,1 1,1"
+);
 
 function Header() {
-	const [isOpen, setIsOpen] = useState(false)
-	const [isLabelVisible, setIsLabelVisible] = useState(true)
-	const panelRef = useRef(null)
-	const labelTimeoutRef = useRef(null)
+	const [isOpen, setIsOpen] = useState(false);
+	const [shouldRenderNav, setShouldRenderNav] = useState(false);
+	const buttonRef = useRef(null);
+	const circleRef = useRef(null);
+	const navRef = useRef(null);
+	const navTweenRef = useRef(null);
+	const openFrameRef = useRef(null);
+	const rotationRef = useRef(0);
+	const navigate = useNavigate();
 
-	const clearLabelTimeout = useCallback(() => {
-		if (!labelTimeoutRef.current) return
+	const animateButton = useCallback(() => {
+		if (!circleRef.current) return;
 
-		window.clearTimeout(labelTimeoutRef.current)
-		labelTimeoutRef.current = null
-	}, [])
+		rotationRef.current += 90;
 
-	const openMenu = useCallback(() => {
-		clearLabelTimeout()
-		setIsLabelVisible(false)
-		setIsOpen(true)
-	}, [clearLabelTimeout])
+		gsap.to(circleRef.current, {
+			"--menu-button-rotation": `${rotationRef.current}deg`,
+			duration: 0.6,
+			ease: "power3.out",
+		});
+	}, []);
 
-	const closeMenu = useCallback(() => {
-		clearLabelTimeout()
-		setIsOpen(false)
-		labelTimeoutRef.current = window.setTimeout(() => {
-			setIsLabelVisible(true)
-			labelTimeoutRef.current = null
-		}, MENU_LABEL_RETURN_DELAY)
-	}, [clearLabelTimeout])
+	const animateOpen = useCallback(() => {
+		const nav = navRef.current;
+		if (!nav) return;
 
-	const toggleMenu = useCallback(() => {
-		if (isOpen) {
-			closeMenu()
-			return
+		navTweenRef.current?.kill();
+		gsap.set(nav, {
+			transformOrigin: "right top",
+			overflow: "hidden",
+		});
+
+		navTweenRef.current = gsap.fromTo(
+			nav,
+			{
+				scale: 0.8,
+				opacity: 0,
+			},
+			{
+				scale: 1,
+				opacity: 1,
+				duration: 0.5,
+				ease: navOpenEase,
+				onComplete: () => {
+					navTweenRef.current = null;
+				},
+			}
+		);
+	}, []);
+
+	const openNav = useCallback(() => {
+		setIsOpen(true);
+		setShouldRenderNav(true);
+
+		if (openFrameRef.current) {
+			window.cancelAnimationFrame(openFrameRef.current);
 		}
 
-		openMenu()
-	}, [closeMenu, isOpen, openMenu])
+		openFrameRef.current = window.requestAnimationFrame(() => {
+			openFrameRef.current = null;
+			animateOpen();
+		});
+	}, [animateOpen]);
+
+	const closeNav = useCallback((onComplete) => {
+		if (openFrameRef.current) {
+			window.cancelAnimationFrame(openFrameRef.current);
+			openFrameRef.current = null;
+		}
+
+		setIsOpen(false);
+
+		const nav = navRef.current;
+		if (!nav) {
+			setShouldRenderNav(false);
+			onComplete?.();
+			return;
+		}
+
+		navTweenRef.current?.kill();
+		navTweenRef.current = gsap.to(nav, {
+			scale: 0.8,
+			opacity: 0,
+			duration: 0.5,
+			ease: navCloseEase,
+			onComplete: () => {
+				navTweenRef.current = null;
+				setShouldRenderNav(false);
+				onComplete?.();
+			},
+		});
+	}, []);
+
+	const handleMenuClick = useCallback(() => {
+		animateButton();
+
+		if (isOpen) {
+			closeNav();
+			return;
+		}
+
+		openNav();
+	}, [animateButton, closeNav, isOpen, openNav]);
+
+	const handleNavigate = useCallback(
+		(to) => {
+			closeNav(() => navigate(to));
+		},
+		[closeNav, navigate]
+	);
 
 	useEffect(() => {
-		if (!isOpen) return undefined
+		if (!shouldRenderNav) return undefined;
 
-		const closeOnEscape = (event) => {
-			if (event.key === 'Escape') {
-				closeMenu()
+		const handlePointerDown = (event) => {
+			const target = event.target;
+
+			if (
+				navRef.current?.contains(target) ||
+				buttonRef.current?.contains(target)
+			) {
+				return;
 			}
-		}
 
-		window.addEventListener('keydown', closeOnEscape)
+			if (isOpen) {
+				closeNav();
+			}
+		};
+
+		document.addEventListener("pointerdown", handlePointerDown);
 
 		return () => {
-			window.removeEventListener('keydown', closeOnEscape)
-		}
-	}, [closeMenu, isOpen])
+			document.removeEventListener("pointerdown", handlePointerDown);
+		};
+	}, [closeNav, isOpen, shouldRenderNav]);
 
-	useEffect(() => clearLabelTimeout, [clearLabelTimeout])
+	useEffect(() => {
+		return () => {
+			if (openFrameRef.current) {
+				window.cancelAnimationFrame(openFrameRef.current);
+			}
 
-	const handlePanelClick = (event) => {
-		if (!isOpen) {
-			toggleMenu()
-			return
-		}
+			navTweenRef.current?.kill();
+		};
+	}, []);
 
-		if (event.target === panelRef.current) {
-			event.stopPropagation()
-		}
-	}
-
-	return (
-		<header
-			className="site-header"
-			data-menu-open={isOpen}
-			onMouseDown={(event) => event.stopPropagation()}
-			onMouseUp={(event) => event.stopPropagation()}
-			onTouchStart={(event) => event.stopPropagation()}
-			onTouchEnd={(event) => event.stopPropagation()}
-		>
-			<AnimatePresence>
-				{isOpen && (
-					<motion.button
-						className="site-menu-backdrop"
-						type="button"
-						aria-label="Fermer le menu"
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						transition={{ duration: 0.25, ease: 'easeInOut' }}
-						onClick={closeMenu}
-					/>
-				)}
-			</AnimatePresence>
-
-			<Link className="site-logo" to="/" aria-label="Retour à l'accueil" onClick={closeMenu}>
-				<img src="/favicon.svg" alt="" />
-			</Link>
-
-			<motion.div
-				ref={panelRef}
-				className="site-menu-panel"
-				data-open={isOpen}
-				variants={panelVariants}
-				initial={false}
-				animate={isOpen ? 'open' : 'closed'}
-				role={isOpen ? 'dialog' : 'button'}
-				aria-label={isOpen ? 'Navigation principale' : 'Ouvrir le menu'}
-				aria-expanded={isOpen}
-				tabIndex={0}
-				onClick={handlePanelClick}
-				onKeyDown={(event) => {
-					if (!isOpen && (event.key === 'Enter' || event.key === ' ')) {
-						event.preventDefault()
-						toggleMenu()
-					}
-				}}
-			>
-				<div className="site-menu-top-row">
-					<AnimatePresence initial={false}>
-						{isLabelVisible && (
-							<motion.span
-								className="site-menu-label"
-								initial={{ opacity: 1, y: 0 }}
-								animate={{ opacity: 1, y: 0 }}
-								exit={{ opacity: 0, y: -8 }}
-								transition={{ duration: 0.08, ease: 'easeInOut' }}
-							>
-								Menu
-							</motion.span>
-						)}
-					</AnimatePresence>
-
-					<motion.button
-						className="site-menu-dot"
-						type="button"
-						aria-label={isOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-						variants={circleVariants}
-						initial={false}
-						animate={isOpen ? 'open' : 'closed'}
-						tabIndex={isOpen ? 0 : -1}
-						onClick={(event) => {
-							event.stopPropagation()
-							if (isOpen) {
-								closeMenu()
-							}
-						}}
-					>
-						<motion.span className="site-menu-cross" variants={crossVariants}>
-							<span />
-							<span />
-						</motion.span>
-					</motion.button>
-				</div>
-
-				<motion.div
-					className="site-menu-content"
-					variants={contentVariants}
-					initial={false}
-					animate={isOpen ? 'open' : 'closed'}
-				>
-					<div className="site-menu-links-area">
-						<nav className="site-menu-nav" aria-label="Navigation du site">
-							{menuItems.map((item) => (
-								<motion.div variants={contentItemVariants} key={item.label}>
-									<Link to={item.to} onClick={closeMenu}>
-										{item.label}
-									</Link>
-								</motion.div>
-							))}
-						</nav>
-					</div>
-
-					<motion.a
-						className="site-menu-email"
-						href="mailto:hello@studio.com"
-						variants={emailVariants}
-						onClick={closeMenu}
-					>
-						hello@studio.com
-					</motion.a>
-				</motion.div>
-			</motion.div>
+	  return (
+		<header className="site-header">
+			<div className="logo">
+				<img src="/favicon.svg" alt="Logo" />
+			</div>
+			<div className="header-menu">
+				<Button
+					ref={buttonRef}
+					circleRef={circleRef}
+					isOpen={isOpen}
+					onClick={handleMenuClick}
+				/>
+				{shouldRenderNav && <Nav ref={navRef} onNavigate={handleNavigate} />}
+			</div>
 		</header>
-	)
+	  )
 }
-
-export default Header
+export default Header;
