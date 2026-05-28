@@ -1,7 +1,6 @@
 import "./styles.css"
 import { forwardRef } from "react"
 import { Link } from "react-router-dom"
-import { FaArrowRight } from "react-icons/fa"
 
 const links = [
     { to: "/", label: "Projects" },
