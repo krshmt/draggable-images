@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import DraggableImagesDistortion from '../components/draggable-images-distortion'
 
@@ -36,15 +36,26 @@ const markHomeEntryAnimationAsPlayed = () => {
 	}
 }
 
-const shouldPlayHomeEntryAnimation = () => {
+const shouldPlayHomeEntryAnimation = (forceEntryAnimation) => {
+	if (forceEntryAnimation) {
+		markHomeEntryAnimationAsPlayed()
+		return true
+	}
+
 	if (hasPlayedHomeEntryAnimation()) return false
 
 	markHomeEntryAnimationAsPlayed()
 	return true
 }
 
-function GalleryPage() {
-	const [shouldPlayEntryAnimation] = useState(shouldPlayHomeEntryAnimation)
+function GalleryPage({ forceEntryAnimation = false, onEntryAnimationReady }) {
+	const [shouldPlayEntryAnimation] = useState(() =>
+		shouldPlayHomeEntryAnimation(forceEntryAnimation),
+	)
+
+	useEffect(() => {
+		onEntryAnimationReady?.()
+	}, [onEntryAnimationReady])
 
 	return (
 		<motion.main

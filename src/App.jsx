@@ -50,9 +50,16 @@ function App() {
   const [isHomeLoading, setIsHomeLoading] = useState(
     () => shouldPlayHomeLoader(location.pathname)
   )
+  const [shouldPlayHomeEntryAfterLoader, setShouldPlayHomeEntryAfterLoader] =
+    useState(false)
 
   const handleHomeLoaderComplete = useCallback(() => {
+    setShouldPlayHomeEntryAfterLoader(true)
     setIsHomeLoading(false)
+  }, [])
+
+  const handleHomeEntryAnimationReady = useCallback(() => {
+    setShouldPlayHomeEntryAfterLoader(false)
   }, [])
 
   useEffect(() => {
@@ -114,7 +121,15 @@ function App() {
           <Header />
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<GalleryPage />} />
+              <Route
+                path="/"
+                element={
+                  <GalleryPage
+                    forceEntryAnimation={shouldPlayHomeEntryAfterLoader}
+                    onEntryAnimationReady={handleHomeEntryAnimationReady}
+                  />
+                }
+              />
               <Route path="/a-propos" element={<AboutPage />} />
               <Route path="/project/:slug" element={<ProjectDetail />} />
             </Routes>
