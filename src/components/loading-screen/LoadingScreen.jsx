@@ -1,223 +1,195 @@
-import { useEffect, useRef } from 'react'
-import gsap from 'gsap'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import TrailContainer from '../../source/TrailContainer'
 import './styles.css'
 
-const LOADER_IMAGE_SIZE = {
-	width: 250,
-	height: 300,
-}
+const TRAIL_DURATION = 4000
+const TRAIL_IMAGE_LIFESPAN = 1000
+const TRAIL_LAYER_COUNT = 10
+const TRAIL_OUT_DURATION = 1000
+const TRAIL_STAGGER_OUT = 25
+const TRAIL_REMOVE_BUFFER = 112
 
-const LOADER_TIMING = {
-	krisDelay: 0,
-	counterDelay: 0.3,
-	textEnterDuration: 0.65,
-	counterDuration: 1.25,
-	imageRevealStart: 0.38,
-	stackRevealStart: 1.02,
-	firstImageDuration: 0.55,
-	stackImageDuration: 0.35,
-	stackImageStagger: 0.08,
-	imageCloseStart: 2.65,
-	imageCloseDuration: 0.35,
-	textExitStart: 3.05,
-	textExitDuration: 0.5,
-	loaderFadeStart: 3.5,
-}
-
-const LOADER_IMAGES = Array.from(
-	{ length: 8 },
-	(_, index) => `/images/img${index + 1}.jpeg`,
+const TRAIL_CENTER_LAYER = (TRAIL_LAYER_COUNT - 1) / 2
+const TRAIL_MAX_OUT_STAGGER = Math.max(
+	...Array.from(
+		{ length: TRAIL_LAYER_COUNT },
+		(_, index) =>
+			(TRAIL_CENTER_LAYER - Math.abs(index - TRAIL_CENTER_LAYER)) *
+			TRAIL_STAGGER_OUT,
+	),
 )
+const TRAIL_IMAGE_COMPLETE_DURATION =
+	TRAIL_IMAGE_LIFESPAN + TRAIL_MAX_OUT_STAGGER + TRAIL_OUT_DURATION + TRAIL_REMOVE_BUFFER
+const PROGRESS_STEPS = [
+	{ time: 0, value: 0 },
+	{ time: 0.08, value: 7 },
+	{ time: 0.18, value: 18 },
+	{ time: 0.25, value: 24 },
+	{ time: 0.31, value: 24 },
+	{ time: 0.44, value: 47 },
+	{ time: 0.52, value: 54 },
+	{ time: 0.58, value: 54 },
+	{ time: 0.72, value: 76 },
+	{ time: 0.8, value: 82 },
+	{ time: 0.86, value: 82 },
+	{ time: 0.94, value: 94 },
+	{ time: 1, value: 100 },
+]
 
-const formatCounter = (value) => {
-	const roundedValue = Math.round(value)
+const easeInOutCubic = (value) =>
+	value < 0.5 ? 4 * value ** 3 : 1 - (-2 * value + 2) ** 3 / 2
 
-	if (roundedValue >= 100) return '100'
+const getProgressValue = (elapsed) => {
+	const progress = Math.min(elapsed / TRAIL_DURATION, 1)
 
-	return String(roundedValue).padStart(2, '0')
+	for (let index = 0; index < PROGRESS_STEPS.length - 1; index += 1) {
+		const currentStep = PROGRESS_STEPS[index]
+		const nextStep = PROGRESS_STEPS[index + 1]
+
+		if (progress < currentStep.time || progress > nextStep.time) continue
+
+		const stepDuration = nextStep.time - currentStep.time
+		const localProgress =
+			stepDuration === 0 ? 1 : (progress - currentStep.time) / stepDuration
+		const easedProgress = easeInOutCubic(localProgress)
+
+		return Math.round(
+			currentStep.value +
+				(nextStep.value - currentStep.value) * easedProgress,
+		)
+	}
+
+	return 100
 }
 
-function LoadingScreen({ onComplete }) {
+function LoadingPage({ onComplete }) {
 	const loaderRef = useRef(null)
-	const krisTextRef = useRef(null)
-	const counterTextRef = useRef(null)
-	const firstImageRef = useRef(null)
-	const stackedImagesRef = useRef([])
-	const onCompleteRef = useRef(onComplete)
+	const hasCompletedRef = useRef(false)
+	const [phase, setPhase] = useState('active')
+	const [loadingProgress, setLoadingProgress] = useState(0)
+	const isAcceptingTrailInput = phase === 'active'
 
-	useEffect(() => {
-		onCompleteRef.current = onComplete
+	const completeLoading = useCallback(() => {
+		if (hasCompletedRef.current) return
+
+		hasCompletedRef.current = true
+		onComplete?.()
 	}, [onComplete])
 
 	useEffect(() => {
-		const counterValue = { value: 0 }
-		const stackedImages = stackedImagesRef.current.filter(Boolean)
-		const allImages = [firstImageRef.current, ...stackedImages].filter(Boolean)
-		const ctx = gsap.context(() => {
-			gsap.set([krisTextRef.current, counterTextRef.current], {
-				yPercent: 115,
-			})
-			gsap.set(firstImageRef.current, {
-				height: 0,
-			})
-			gsap.set(stackedImages, {
-				autoAlpha: 0,
-				scale: 0,
-				height: LOADER_IMAGE_SIZE.height,
-			})
+		const trailTimer = window.setTimeout(() => {
+			setPhase('draining')
+		}, TRAIL_DURATION)
 
-			const timeline = gsap.timeline({
-				defaults: { ease: 'power3.out' },
-				onComplete: () => onCompleteRef.current?.(),
-			})
-
-			timeline
-				.to(
-					krisTextRef.current,
-					{
-						yPercent: 0,
-						duration: LOADER_TIMING.textEnterDuration,
-					},
-					LOADER_TIMING.krisDelay,
-				)
-				.to(
-					counterTextRef.current,
-					{
-						yPercent: 0,
-						duration: LOADER_TIMING.textEnterDuration,
-					},
-					LOADER_TIMING.counterDelay,
-				)
-				.to(
-					counterValue,
-					{
-						value: 100,
-						duration: LOADER_TIMING.counterDuration,
-						ease: 'power4.out',
-						onUpdate: () => {
-							if (counterTextRef.current) {
-								counterTextRef.current.textContent = formatCounter(
-									counterValue.value,
-								)
-							}
-						},
-					},
-					LOADER_TIMING.counterDelay,
-				)
-				.to(
-					firstImageRef.current,
-					{
-						height: LOADER_IMAGE_SIZE.height,
-						duration: LOADER_TIMING.firstImageDuration,
-						ease: 'power4.inOut',
-					},
-					LOADER_TIMING.imageRevealStart,
-				)
-				.to(
-					stackedImages,
-					{
-						autoAlpha: 1,
-						scale: 1,
-						duration: LOADER_TIMING.stackImageDuration,
-						stagger: LOADER_TIMING.stackImageStagger,
-						ease: 'back.out(1.6)',
-					},
-					LOADER_TIMING.stackRevealStart,
-				)
-				.set(
-					allImages,
-					{
-						top: 0,
-						bottom: 'auto',
-					},
-					LOADER_TIMING.imageCloseStart,
-				)
-				.set(
-					allImages.map((element) => element.querySelector('img')),
-					{
-						top: 0,
-						bottom: 'auto',
-					},
-					LOADER_TIMING.imageCloseStart,
-				)
-				.to(
-					allImages,
-					{
-						height: 0,
-						duration: LOADER_TIMING.imageCloseDuration,
-						stagger: 0.03,
-						ease: 'power4.inOut',
-					},
-					LOADER_TIMING.imageCloseStart,
-				)
-				.to(
-					[krisTextRef.current, counterTextRef.current],
-					{
-						yPercent: -115,
-						duration: LOADER_TIMING.textExitDuration,
-						ease: 'power3.in',
-					},
-					LOADER_TIMING.textExitStart,
-				)
-				.to(
-					loaderRef.current,
-					{
-						autoAlpha: 0,
-						duration: 0.2,
-						ease: 'power1.out',
-					},
-					LOADER_TIMING.loaderFadeStart,
-				)
-		}, loaderRef)
-
-		return () => ctx.revert()
+		return () => {
+			window.clearTimeout(trailTimer)
+		}
 	}, [])
 
+	useEffect(() => {
+		let frameId
+		const startedAt = performance.now()
+
+		const updateProgress = (now) => {
+			const elapsed = now - startedAt
+			const nextProgress = getProgressValue(elapsed)
+
+			setLoadingProgress((currentProgress) =>
+				currentProgress === nextProgress ? currentProgress : nextProgress,
+			)
+
+			if (elapsed < TRAIL_DURATION) {
+				frameId = window.requestAnimationFrame(updateProgress)
+			} else {
+				setLoadingProgress(100)
+			}
+		}
+
+		frameId = window.requestAnimationFrame(updateProgress)
+
+		return () => {
+			window.cancelAnimationFrame(frameId)
+		}
+	}, [])
+
+	useEffect(() => {
+		const previousOverflow = document.body.style.overflow
+		document.body.style.overflow = 'hidden'
+
+		return () => {
+			document.body.style.overflow = previousOverflow
+		}
+	}, [])
+
+	useEffect(() => {
+		if (isAcceptingTrailInput) return undefined
+
+		const blockTrailMouseMove = (event) => {
+			event.stopPropagation()
+			event.stopImmediatePropagation?.()
+		}
+
+		document.addEventListener('mousemove', blockTrailMouseMove, true)
+
+		return () => {
+			document.removeEventListener('mousemove', blockTrailMouseMove, true)
+		}
+	}, [isAcceptingTrailInput])
+
+	useEffect(() => {
+		if (phase !== 'draining') return undefined
+
+		const loader = loaderRef.current
+		if (!loader) {
+			completeLoading()
+			return undefined
+		}
+
+		const hasTrailImages = () => loader.querySelectorAll('.trail-img').length > 0
+
+		const completeWhenTrailIsClear = () => {
+			if (!hasTrailImages()) {
+				completeLoading()
+			}
+		}
+
+		const observer = new MutationObserver(completeWhenTrailIsClear)
+		observer.observe(loader, { childList: true, subtree: true })
+
+		const fallbackTimer = window.setTimeout(
+			completeLoading,
+			TRAIL_IMAGE_COMPLETE_DURATION,
+		)
+
+		completeWhenTrailIsClear()
+
+		return () => {
+			observer.disconnect()
+			window.clearTimeout(fallbackTimer)
+		}
+	}, [completeLoading, phase])
+
 	return (
-		<div
+		<section
 			ref={loaderRef}
-			className="loading-screen"
-			style={{
-				'--loader-image-width': `${LOADER_IMAGE_SIZE.width}px`,
-				'--loader-image-height': `${LOADER_IMAGE_SIZE.height}px`,
-			}}
-			aria-label="Loading homepage"
-			role="status"
+			className={`loading-page loading-page--${phase}`}
+			aria-busy="true"
+			aria-label="Chargement"
 		>
-			<div className="loading-screen__content">
-				<div className="loading-screen__text" aria-live="polite">
-					<span className="loading-screen__mask">
-						<span ref={krisTextRef} className="loading-screen__word">
-							Kris
-						</span>
-					</span>
-					<span className="loading-screen__mask">
-						<span ref={counterTextRef} className="loading-screen__counter">
-							00
-						</span>
-					</span>
-				</div>
-
-				<div className="loading-screen__image-stage" aria-hidden="true">
-					<div ref={firstImageRef} className="loading-screen__first-image">
-						<img src={LOADER_IMAGES[0]} alt="" draggable="false" />
-					</div>
-
-					{LOADER_IMAGES.slice(1).map((image, index) => (
-						<div
-							ref={(element) => {
-								stackedImagesRef.current[index] = element
-							}}
-							className="loading-screen__stacked-image"
-							key={image}
-						>
-							<img src={image} alt="" draggable="false" />
-						</div>
-					))}
-				</div>
+			<div className="loading-page__trail" aria-hidden="true">
+				<TrailContainer />
 			</div>
-		</div>
+			<div className="loading-page__progress" role="status" aria-live="polite">
+				<span
+					key={loadingProgress}
+					className="loading-page__progress-value"
+				>
+					{String(loadingProgress).padStart(3, '0')}
+				</span>
+			</div>
+			<span className="loading-page__sr-only">Chargement</span>
+		</section>
 	)
 }
 
-export default LoadingScreen
+export default LoadingPage

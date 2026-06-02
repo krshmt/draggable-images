@@ -14,11 +14,30 @@
 	background: #000;
 }
 
-.home-entry-transition {
-	position: fixed;
-	inset: 0;
-	z-index: 4500;
-	background: #000;
-	pointer-events: none;
-	will-change: transform;
+@media (max-width: 1199px) {
+	body {
+		overflow: hidden;
+	}
+
+	body::before {
+		content: "Please use a larger device for a better experience.";
+		position: fixed;
+		inset: 0;
+		z-index: 9999;
+		display: grid;
+		place-items: center;
+		padding: 2rem;
+		background: #f4f5ef;
+		color: #050505;
+		font-family: "Mosvita", Arial, Helvetica, sans-serif;
+		font-size: clamp(1.05rem, 4vw, 1.65rem);
+		font-weight: 400;
+		letter-spacing: 0;
+		line-height: 1.25;
+		text-align: center;
+	}
+
+	#root {
+		display: none;
+	}
 }

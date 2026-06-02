@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import Lenis from 'lenis'
 import 'lenis/dist/lenis.css'
 import { Route, Routes, useLocation } from 'react-router-dom'
@@ -10,20 +10,48 @@ import AboutPage from './pages/AboutPage.jsx'
 import Header from './components/header/Header.jsx'
 import LoadingScreen from './components/loading-screen/LoadingScreen.jsx'
 
-let hasPlayedHomeLoader = false
+const HOME_LOADER_STORAGE_KEY = 'home-loader-played'
+
+const hasPlayedHomeLoader = () => {
+  try {
+    return window.localStorage.getItem(HOME_LOADER_STORAGE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+const markHomeLoaderAsPlayed = () => {
+  try {
+    window.localStorage.setItem(HOME_LOADER_STORAGE_KEY, 'true')
+  } catch {
+    // localStorage can be unavailable in private or restricted contexts.
+  }
+}
+
+const isDocumentReload = () => {
+  const [navigationEntry] = performance.getEntriesByType('navigation')
+
+  return navigationEntry?.type === 'reload'
+}
+
+const shouldPlayHomeLoader = (pathname) => {
+  if (pathname !== '/') return false
+  if (isDocumentReload()) return true
+  if (hasPlayedHomeLoader()) return false
+
+  markHomeLoaderAsPlayed()
+  return true
+}
 
 function App() {
   const location = useLocation()
   const lenisRef = useRef(null)
   const previousPathRef = useRef(location.pathname)
   const [isHomeLoading, setIsHomeLoading] = useState(
-    () => location.pathname === '/' && !hasPlayedHomeLoader
+    () => shouldPlayHomeLoader(location.pathname)
   )
-  const [showHomeEntryTransition, setShowHomeEntryTransition] = useState(false)
 
   const handleHomeLoaderComplete = useCallback(() => {
-    hasPlayedHomeLoader = true
-    setShowHomeEntryTransition(true)
     setIsHomeLoading(false)
   }, [])
 
@@ -84,28 +112,12 @@ function App() {
       ) : (
         <>
           <Header />
-          <AnimatePresence mode="wait" initial={showHomeEntryTransition}>
+          <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
               <Route path="/" element={<GalleryPage />} />
               <Route path="/a-propos" element={<AboutPage />} />
               <Route path="/project/:slug" element={<ProjectDetail />} />
             </Routes>
-          </AnimatePresence>
-          <AnimatePresence>
-            {showHomeEntryTransition && (
-              <motion.div
-                className="home-entry-transition"
-                initial={{
-                  y: '0%',
-                }}
-                animate={{
-                  y: '-100%',
-                }}
-                exit={{ y: '-100%' }}
-                transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
-                onAnimationComplete={() => setShowHomeEntryTransition(false)}
-              />
-            )}
           </AnimatePresence>
         </>
       )}
