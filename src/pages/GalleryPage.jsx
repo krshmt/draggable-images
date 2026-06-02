@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import DraggableImagesDistortion from '../components/draggable-images-distortion'
 
+const HOME_ENTRY_STORAGE_KEY = 'home-entry-animation-played'
+
 const galleryVariants = {
-	initial: { opacity: 0, scale: 1.04, filter: 'blur(18px)' },
+	initial: { opacity: 0, scale: 1.25, filter: 'blur(18px)' },
 	animate: {
 		opacity: 1,
 		scale: 1,
@@ -17,12 +20,37 @@ const galleryVariants = {
 	},
 }
 
+const hasPlayedHomeEntryAnimation = () => {
+	try {
+		return window.localStorage.getItem(HOME_ENTRY_STORAGE_KEY) === 'true'
+	} catch {
+		return false
+	}
+}
+
+const markHomeEntryAnimationAsPlayed = () => {
+	try {
+		window.localStorage.setItem(HOME_ENTRY_STORAGE_KEY, 'true')
+	} catch {
+		// localStorage can be unavailable in private or restricted contexts.
+	}
+}
+
+const shouldPlayHomeEntryAnimation = () => {
+	if (hasPlayedHomeEntryAnimation()) return false
+
+	markHomeEntryAnimationAsPlayed()
+	return true
+}
+
 function GalleryPage() {
+	const [shouldPlayEntryAnimation] = useState(shouldPlayHomeEntryAnimation)
+
 	return (
 		<motion.main
 			className="route-shell gallery-route"
 			variants={galleryVariants}
-			initial="initial"
+			initial={shouldPlayEntryAnimation ? 'initial' : false}
 			animate="animate"
 			exit="exit"
 		>

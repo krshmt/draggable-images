@@ -52,7 +52,7 @@ function NextProjectSection({ project }) {
 		>
 			<div className="next-project__content">
 				<Link className="next-project__home" to="/">
-					Retour à l’accueil
+					Back to the homepage
 				</Link>
 
 
@@ -63,7 +63,7 @@ function NextProjectSection({ project }) {
 				<h2 id="next-project-title" className="next-project__title">
 					{project.title}
 				</h2>
-				<p className="next-project__eyebrow">Scroll pour le projet suivant</p>
+				<p className="next-project__eyebrow">Scroll for the next project</p>
 			</div>
 
 			<div

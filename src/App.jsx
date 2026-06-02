@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
 import { AnimatePresence } from 'framer-motion'
 import Lenis from 'lenis'
@@ -8,11 +8,52 @@ import GalleryPage from './pages/GalleryPage.jsx'
 import ProjectDetail from './pages/ProjectDetail.jsx'
 import AboutPage from './pages/AboutPage.jsx'
 import Header from './components/header/Header.jsx'
+import LoadingScreen from './components/loading-screen/LoadingScreen.jsx'
+
+const HOME_LOADER_STORAGE_KEY = 'home-loader-played'
+
+const hasPlayedHomeLoader = () => {
+  try {
+    return window.localStorage.getItem(HOME_LOADER_STORAGE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+const markHomeLoaderAsPlayed = () => {
+  try {
+    window.localStorage.setItem(HOME_LOADER_STORAGE_KEY, 'true')
+  } catch {
+    // localStorage can be unavailable in private or restricted contexts.
+  }
+}
+
+const isDocumentReload = () => {
+  const [navigationEntry] = performance.getEntriesByType('navigation')
+
+  return navigationEntry?.type === 'reload'
+}
+
+const shouldPlayHomeLoader = (pathname) => {
+  if (pathname !== '/') return false
+  if (isDocumentReload()) return true
+  if (hasPlayedHomeLoader()) return false
+
+  markHomeLoaderAsPlayed()
+  return true
+}
 
 function App() {
   const location = useLocation()
   const lenisRef = useRef(null)
   const previousPathRef = useRef(location.pathname)
+  const [isHomeLoading, setIsHomeLoading] = useState(
+    () => shouldPlayHomeLoader(location.pathname)
+  )
+
+  const handleHomeLoaderComplete = useCallback(() => {
+    setIsHomeLoading(false)
+  }, [])
 
   useEffect(() => {
     let frameId
@@ -66,14 +107,20 @@ function App() {
 
   return (
     <>
-      <Header />
-      <AnimatePresence mode="wait" initial={false}>
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<GalleryPage />} />
-          <Route path="/a-propos" element={<AboutPage />} />
-          <Route path="/project/:slug" element={<ProjectDetail />} />
-        </Routes>
-      </AnimatePresence>
+      {isHomeLoading ? (
+        <LoadingScreen onComplete={handleHomeLoaderComplete} />
+      ) : (
+        <>
+          <Header />
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={<GalleryPage />} />
+              <Route path="/a-propos" element={<AboutPage />} />
+              <Route path="/project/:slug" element={<ProjectDetail />} />
+            </Routes>
+          </AnimatePresence>
+        </>
+      )}
     </>
   )
 }
